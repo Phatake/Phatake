@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calculator — Phatake</title>
+  <style>
+    :root{ --bg:#f4f6f8; --panel:#fff; --accent:#2563eb; --btn:#e6eef8; --btn-hover:#d1e5fb; --text:#111827; --op:#fcd34d }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:420px;margin:6vh auto;padding:18px}
+    .calculator{ background:var(--panel); border-radius:14px; padding:18px; box-shadow:0 8px 24px rgba(17,24,39,0.08)}
+    .display{ height:84px; background:#0f1724; color:#fff; border-radius:10px; display:flex;flex-direction:column; justify-content:center; padding:12px; font-size:1.6rem; overflow:hidden; }
+    .display .expr{ color:#9ca3af; font-size:.7rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+    .display .value{ text-align:right; font-weight:600; word-break:break-all }
+    .keys{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:12px }
+    button{ appearance:none; -webkit-appearance:none }
+    .btn{ background:var(--btn); border:0; border-radius:10px; padding:14px; font-size:1.05rem; cursor:pointer; transition:background .12s, transform .06s; box-shadow:inset 0 -2px 0 rgba(0,0,0,0.04) }
+    .btn:active{transform:translateY(1px)}
+    .btn:hover{background:var(--btn-hover)}
+    .op{ background:var(--op) }
+    .eq{ background:var(--accent); color:white; grid-column:4; grid-row:4 / span 2 }
+    .zero{ grid-column:1 / span 2 }
+    .func{ background:#fef3f2 }
+    .btn:focus{ outline:3px solid rgba(37,99,235,0.16); outline-offset:2px }
+    .hint{ font-size:.85rem; color:#6b7280; margin-top:10px; text-align:center }
+    @media (max-width:420px){ .display{height:72px; font-size:1.3rem} .btn{padding:12px} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="calculator" aria-label="Calculator">
+      <div class="display" id="display" aria-live="polite">
+        <div class="expr" id="expr">&nbsp;</div>
+        <div class="value" id="value">0</div>
+      </div>
+
+      <div class="keys" role="group" aria-label="Calculator keys">
+        <button type="button" class="btn func" data-action="clear" aria-label="Clear">C</button>
+        <button type="button" class="btn func" data-action="back" aria-label="Backspace">←</button>
+        <button type="button" class="btn op" data-value="(" aria-label="Left parenthesis">(</button>
+        <button type="button" class="btn op" data-value=")" aria-label="Right parenthesis">)</button>
+
+        <button type="button" class="btn" data-value="7">7</button>
+        <button type="button" class="btn" data-value="8">8</button>
+        <button type="button" class="btn" data-value="9">9</button>
+        <button type="button" class="btn op" data-value="/">÷</button>
+
+        <button type="button" class="btn" data-value="4">4</button>
+        <button type="button" class="btn" data-value="5">5</button>
+        <button type="button" class="btn" data-value="6">6</button>
+        <button type="button" class="btn op" data-value="*">×</button>
+
+        <button type="button" class="btn" data-value="1">1</button>
+        <button type="button" class="btn" data-value="2">2</button>
+        <button type="button" class="btn" data-value="3">3</button>
+        <button type="button" class="btn op" data-value="-">−</button>
+
+        <button type="button" class="btn zero" data-value="0">0</button>
+        <button type="button" class="btn" data-value="." aria-label="Decimal">.</button>
+        <button type="button" class="btn eq" data-action="equals" aria-label="Equals">=</button>
+      </div>
+
+      <div class="hint">Keyboard: numbers, + - * / . Enter =, Backspace, Esc (clear)</div>
+    </main>
+  </div>
+
+  <script>
+    (function(){
+      const exprEl = document.getElementById('expr');
+      const valueEl = document.getElementById('value');
+      const keys = document.querySelector('.keys');
+
+      let expression = '';
+
+      // Tokenizer: returns array of tokens {type: 'number'|'op'|'paren', value: string}
+      function tokenize(s) {
+        const tokens = [];
+        const re = /\s*([0-9]+(?:\.[0-9]*)?|\.[0-9]+|[+\-*/()])\s*/g;
+        let m;
+        let idx = 0;
+        while ((m = re.exec(s)) !== null) {
+          tokens.push(m[1]);
+          idx = re.lastIndex;
+        }
+        // if there's leftover non-matching chars, throw
+        if (idx < s.length && s.slice(idx).trim() !== '') throw new Error('Invalid token');
+        // convert to structured tokens with unary minus handling
+        const out = [];
+        for (let i = 0; i < tokens.length; i++) {
+          const t = tokens[i];
+          if (t === '+' || t === '*' || t === '/' ) { out.push({type:'op', value:t}); continue; }
+          if (t === '-') {
+            // unary if at start or after another operator or after '('
+            const prev = out.length ? out[out.length-1] : null;
+            if (!prev || (prev.type === 'op') || (prev.type === 'paren' && prev.value === '(')) {
+              // unary minus represented as 'u-'
+              out.push({type:'op', value:'u-'});
+            } else {
+              out.push({type:'op', value:'-'});
+            }
+            continue;
+          }
+          if (t === '(' || t === ')') { out.push({type:'paren', value:t}); continue; }
+          // number
+          if (/^[0-9]*\.?[0-9]+$/.test(t)) out.push({type:'number', value:t});
+          else throw new Error('Invalid number');
+        }
+        return out;
+      }
+
+      // Shunting-yard: convert tokens to RPN
+      function toRPN(tokens) {
+        const out = [];
+        const ops = [];
+        const precedence = { '+':1, '-':1, '*':2, '/':2, 'u-':3 };
+        const rightAssoc = { 'u-': true };
+        for (const token of tokens) {
+          if (token.type === 'number') out.push(token);
+          else if (token.type === 'op') {
+            const o1 = token.value;
+            while (ops.length) {
+              const o2 = ops[ops.length-1];
+              if (o2.type !== 'op') break;
+              const p1 = precedence[o1] || 0;
+              const p2 = precedence[o2.value] || 0;
+              if ((rightAssoc[o1] && p1 < p2) || (!rightAssoc[o1] && p1 <= p2)) {
+                out.push(ops.pop());
+              } else break;
+            }
+            ops.push(token);
+          } else if (token.type === 'paren') {
+            if (token.value === '(') ops.push(token);
+            else {
+              // token is ')'
+              let found = false;
+              while (ops.length) {
+                const t = ops.pop();
+                if (t.type === 'paren' && t.value === '(') { found = true; break; }
+                out.push(t);
+              }
+              if (!found) throw new Error('Mismatched parentheses');
+            }
+          }
+        }
+        while (ops.length) {
+          const t = ops.pop();
+          if (t.type === 'paren') throw new Error('Mismatched parentheses');
+          out.push(t);
+        }
+        return out;
+      }
+
+      // Evaluate RPN
+      function evalRPN(rpn) {
+        const st = [];
+        for (const token of rpn) {
+          if (token.type === 'number') st.push(Number(token.value));
+          else if (token.type === 'op') {
+            if (token.value === 'u-') {
+              const a = st.pop();
+              if (a === undefined) throw new Error('Syntax error');
+              st.push(-a);
+            } else {
+              const b = st.pop();
+              const a = st.pop();
+              if (a === undefined || b === undefined) throw new Error('Syntax error');
+              let res;
+              switch (token.value) {
+                case '+': res = a + b; break;
+                case '-': res = a - b; break;
+                case '*': res = a * b; break;
+                case '/': res = a / b; break;
+                default: throw new Error('Unknown operator');
+              }
+              st.push(res);
+            }
+          } else throw new Error('Invalid RPN token');
+        }
+        if (st.length !== 1) throw new Error('Syntax error');
+        return st[0];
+      }
+
+      function safeEvaluate(s) {
+        // basic allowed characters
+        if (!/^[0-9+\-*/().\s]*$/.test(s)) throw new Error('Invalid characters');
+        const tokens = tokenize(s);
+        const rpn = toRPN(tokens);
+        const res = evalRPN(rpn);
+        return res;
+      }
+
+      function formatNumber(n) {
+        if (!Number.isFinite(n)) return 'Error';
+        if (Number.isInteger(n)) return String(n);
+        // limit to 12 significant digits
+        const str = Number(n.toPrecision(12));
+        return String(str);
+      }
+
+      function updateDisplay(temp) {
+        if (temp !== undefined) {
+          valueEl.textContent = temp;
+        } else {
+          valueEl.textContent = expression === '' ? '0' : expression;
+        }
+        exprEl.textContent = expression === '' ? '\u00A0' : expression; // non-breaking space when empty
+        // size adjust
+        if ((valueEl.textContent || '').length > 14) valueEl.style.fontSize = '1.1rem';
+        else valueEl.style.fontSize = '';
+      }
+
+      function clearAll() { expression = ''; updateDisplay(); }
+      function backspace() { if (!expression) return; expression = expression.slice(0, -1); updateDisplay(); }
+
+      function append(value) {
+        // map visual symbols
+        if (value === '÷') value = '/';
+        if (value === '×') value = '*';
+
+        const last = expression.slice(-1);
+        const ops = '+-*/';
+
+        if (value === '(') {
+          // auto-insert multiplication: 2( => 2*(
+          if (/\d|\)/.test(last)) expression += '*(';
+          else expression += '(';
+          updateDisplay(); return;
+        }
+        if (value === ')') {
+          // only add if there is unmatched '('
+          const balance = (expression.match(/\(/g)||[]).length - (expression.match(/\)/g)||[]).length;
+          if (balance > 0 && last !== '(') { expression += ')'; updateDisplay(); }
+          return;
+        }
+
+        if (value === '.') {
+          // prevent multiple decimals in current number
+          const m = expression.match(/([0-9]*\.?[0-9]*)$/);
+          const cur = m ? m[0] : '';
+          if (cur.includes('.')) return;
+          if (cur === '') expression += '0.'; else expression += '.';
+          updateDisplay(); return;
+        }
+
+        if (/[0-9]/.test(value)) {
+          // handle leading zero replacement
+          const m = expression.match(/([+\-*/(]|^)(0)$/);
+          if (m && m[2] === '0' && (expression.length === 1 || /[+\-*/(]/.test(expression[expression.length-2] || ''))) {
+            // replace the trailing zero
+            expression = expression.slice(0, -1) + value;
+          } else expression += value;
+          updateDisplay(); return;
+        }
+
+        if (ops.includes(value)) {
+          if (expression === '' && value !== '-') return; // don't start with +*/
+          if (ops.includes(last)) {
+            // allow change of operator: replace last
+            expression = expression.slice(0, -1) + value;
+          } else {
+            expression += value;
+          }
+          updateDisplay(); return;
+        }
+      }
+
+      function calculate() {
+        if (!expression) return;
+        try {
+          const res = safeEvaluate(expression);
+          if (!Number.isFinite(res)) { updateDisplay('Error'); return; }
+          expression = formatNumber(res);
+          updateDisplay();
+        } catch (e) {
+          updateDisplay('Error');
+        }
+      }
+
+      keys.addEventListener('click', (e) => {
+        const btn = e.target.closest('button'); if (!btn) return;
+        const action = btn.dataset.action; const value = btn.dataset.value;
+        if (action === 'clear') clearAll();
+        else if (action === 'back') backspace();
+        else if (action === 'equals') calculate();
+        else if (value) append(value);
+      });
+
+      window.addEventListener('keydown', (e) => {
+        let key = e.key;
+        if (key === 'x' || key === 'X') key = '*';
+        if (key === 'Enter' || key === '=') { calculate(); e.preventDefault(); return; }
+        if (key === 'Backspace') { backspace(); e.preventDefault(); return; }
+        if (key === 'Escape') { clearAll(); e.preventDefault(); return; }
+        const allowed = '0123456789+-*/().';
+        if (allowed.includes(key)) { append(key); e.preventDefault(); return; }
+      });
+
+      // initialize
+      clearAll();
+
+    })();
+  </script>
+</body>
+</html>
