@@ -19,7 +19,7 @@
     .btn:active{transform:translateY(1px)}
     .btn:hover{background:var(--btn-hover)}
     .op{ background:var(--op) }
-    .eq{ background:var(--accent); color:white; grid-column:4; grid-row:4 / span 2 }
+    .eq{ background:var(--accent); color:white }
     .zero{ grid-column:1 / span 2 }
     .func{ background:#fef3f2 }
     .btn:focus{ outline:3px solid rgba(37,99,235,0.16); outline-offset:2px }
@@ -58,6 +58,7 @@
 
         <button type="button" class="btn zero" data-value="0">0</button>
         <button type="button" class="btn" data-value="." aria-label="Decimal">.</button>
+        <button type="button" class="btn op" data-value="+" aria-label="Add">+</button>
         <button type="button" class="btn eq" data-action="equals" aria-label="Equals">=</button>
       </div>
 
