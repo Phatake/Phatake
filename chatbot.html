@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsUp Bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            max-height: 600px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .user .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 0;
+        }
+
+        .bot .message-content {
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-area {
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .typing {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing span {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+            }
+            30% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">💬 WhatsUp Bot</div>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="userInput" 
+                placeholder="Say something..." 
+                autocomplete="off"
+            >
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const responses = {
+            'hello': ['Hey there! 👋', 'Hi! How\'s it going?', 'Yo! What\'s good?'],
+            'how are you': ['Doing great, thanks for asking! 😊', 'I\'m all good, how about you?', 'Fantastic! Ready to chat!'],
+            'what is your name': ['I\'m WhatsUp Bot, your friendly chatbot! 🤖', 'Call me WhatsUp Bot!', 'I\'m WhatsUp Bot, nice to meet you!'],
+            'what can you do': ['I can chat with you, answer questions, tell jokes, and more! 😄', 'I\'m here to have fun conversations with you!', 'I can talk about anything you want!'],
+            'tell me a joke': [
+                'Why don\'t scientists trust atoms? Because they make up everything! 😄',
+                'What do you call a fake noodle? An impasta! 🍝',
+                'Why did the scarecrow win an award? He was outstanding in his field! 🌾'
+            ],
+            'thank you': ['You\'re welcome! 😊', 'No problem at all!', 'Happy to help!'],
+            'bye': ['See you later! 👋', 'Catch you soon!', 'Goodbye! Come back anytime!'],
+            'default': [
+                'That\'s interesting! Tell me more 🤔',
+                'I hear you! What else?',
+                'Cool! Anything else on your mind?',
+                'Nice! Keep talking! 💭'
+            ]
+        };
+
+        function getBotResponse(userMessage) {
+            const message = userMessage.toLowerCase().trim();
+            
+            for (const [key, responses_list] of Object.entries(responses)) {
+                if (key !== 'default' && message.includes(key)) {
+                    return responses_list[Math.floor(Math.random() * responses_list.length)];
+                }
+            }
+            
+            return responses.default[Math.floor(Math.random() * responses.default.length)];
+        }
+
+        function displayMessage(text, isUser) {
+            const chatBox = document.getElementById('chatBox');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(contentDiv);
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function displayTyping() {
+            const chatBox = document.getElementById('chatBox');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.id = 'typingIndicator';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content typing';
+            contentDiv.innerHTML = '<span></span><span></span><span></span>';
+            
+            messageDiv.appendChild(contentDiv);
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const message = userInput.value.trim();
+            
+            if (!message) return;
+            
+            displayMessage(message, true);
+            userInput.value = '';
+            
+            displayTyping();
+            
+            setTimeout(() => {
+                removeTyping();
+                const botResponse = getBotResponse(message);
+                displayMessage(botResponse, false);
+            }, 800);
+        }
+
+        document.getElementById('userInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Greeting message
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                displayMessage('Hey there! 👋 I\'m WhatsUp Bot. What\'s up?', false);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
