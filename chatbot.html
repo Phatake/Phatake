@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsUp Bot</title>
+    <title>WhatsUp Bot - Your Friendly Chat Buddy 💙</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Comic Sans MS', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             justify-content: center;
@@ -25,21 +25,46 @@
             width: 100%;
             max-width: 500px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 90vh;
-            max-height: 600px;
+            max-height: 700px;
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 25px;
             text-align: center;
-            font-size: 24px;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            flex: 1;
+        }
+
+        .emoji {
+            font-size: 30px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .memory-badge {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: bold;
         }
 
@@ -50,6 +75,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            background: #f8f9ff;
         }
 
         .message {
@@ -74,59 +100,72 @@
         }
 
         .message-content {
-            max-width: 70%;
-            padding: 10px 15px;
-            border-radius: 10px;
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
             word-wrap: break-word;
-            line-height: 1.4;
+            line-height: 1.5;
+            font-size: 15px;
         }
 
         .user .message-content {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-bottom-right-radius: 0;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .bot .message-content {
-            background: #f0f0f0;
+            background: white;
             color: #333;
             border-bottom-left-radius: 0;
+            border: 2px solid #e0e0ff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .bot-avatar {
+            font-size: 24px;
         }
 
         .input-area {
             padding: 15px;
-            border-top: 1px solid #ddd;
+            border-top: 2px solid #e0e0ff;
             display: flex;
             gap: 10px;
+            background: white;
         }
 
         input {
             flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
+            padding: 12px 16px;
+            border: 2px solid #e0e0ff;
+            border-radius: 25px;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         input:focus {
             border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
         }
 
         button {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 12px 24px;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            font-size: 14px;
         }
 
         button:hover {
-            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
         button:active {
@@ -135,14 +174,14 @@
 
         .typing {
             display: flex;
-            gap: 4px;
+            gap: 5px;
             align-items: center;
         }
 
         .typing span {
             width: 8px;
             height: 8px;
-            background: #999;
+            background: #667eea;
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -163,54 +202,275 @@
                 opacity: 1;
             }
         }
+
+        .clear-btn {
+            background: #ff6b6b;
+            padding: 8px 12px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .clear-btn:hover {
+            background: #ff5252;
+        }
+
+        .system-message {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0f0ff;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">💬 WhatsUp Bot</div>
+        <div class="header">
+            <span class="emoji">💙</span>
+            <div class="header-title">WhatsUp Bot</div>
+            <div class="memory-badge">Memory: <span id="memoryCount">0</span></div>
+        </div>
         <div class="chat-box" id="chatBox"></div>
         <div class="input-area">
-            <input 
-                type="text" 
-                id="userInput" 
-                placeholder="Say something..." 
-                autocomplete="off"
-            >
-            <button onclick="sendMessage()">Send</button>
+            <div style="flex: 1;">
+                <input 
+                    type="text" 
+                    id="userInput" 
+                    placeholder="Tell me anything! I'll remember... 😊" 
+                    autocomplete="off"
+                >
+                <button class="clear-btn" onclick="clearMemory()">Clear Memory</button>
+            </div>
+            <button onclick="sendMessage()">Send 💬</button>
         </div>
     </div>
 
     <script>
-        const responses = {
-            'hello': ['Hey there! 👋', 'Hi! How\'s it going?', 'Yo! What\'s good?'],
-            'how are you': ['Doing great, thanks for asking! 😊', 'I\'m all good, how about you?', 'Fantastic! Ready to chat!'],
-            'what is your name': ['I\'m WhatsUp Bot, your friendly chatbot! 🤖', 'Call me WhatsUp Bot!', 'I\'m WhatsUp Bot, nice to meet you!'],
-            'what can you do': ['I can chat with you, answer questions, tell jokes, and more! 😄', 'I\'m here to have fun conversations with you!', 'I can talk about anything you want!'],
-            'tell me a joke': [
-                'Why don\'t scientists trust atoms? Because they make up everything! 😄',
-                'What do you call a fake noodle? An impasta! 🍝',
-                'Why did the scarecrow win an award? He was outstanding in his field! 🌾'
-            ],
-            'thank you': ['You\'re welcome! 😊', 'No problem at all!', 'Happy to help!'],
-            'bye': ['See you later! 👋', 'Catch you soon!', 'Goodbye! Come back anytime!'],
-            'default': [
-                'That\'s interesting! Tell me more 🤔',
-                'I hear you! What else?',
-                'Cool! Anything else on your mind?',
-                'Nice! Keep talking! 💭'
-            ]
+        // User Memory System
+        const userMemory = {
+            name: null,
+            age: null,
+            favoriteColor: null,
+            interests: [],
+            weather: null,
+            mood: null,
+            visitCount: 0,
+            lastVisit: null,
+            memories: []
         };
 
-        function getBotResponse(userMessage) {
-            const message = userMessage.toLowerCase().trim();
-            
-            for (const [key, responses_list] of Object.entries(responses)) {
-                if (key !== 'default' && message.includes(key)) {
-                    return responses_list[Math.floor(Math.random() * responses_list.length)];
+        // Load memory from localStorage
+        function loadMemory() {
+            const saved = localStorage.getItem('whatsupbotMemory');
+            if (saved) {
+                Object.assign(userMemory, JSON.parse(saved));
+            }
+            userMemory.visitCount = (userMemory.visitCount || 0) + 1;
+            saveMemory();
+        }
+
+        // Save memory to localStorage
+        function saveMemory() {
+            localStorage.setItem('whatsupbotMemory', JSON.stringify(userMemory));
+            updateMemoryBadge();
+        }
+
+        function updateMemoryBadge() {
+            const count = userMemory.memories.length;
+            document.getElementById('memoryCount').textContent = count;
+        }
+
+        function clearMemory() {
+            if (confirm('Are you sure? This will clear all my memories about you 😢')) {
+                localStorage.removeItem('whatsupbotMemory');
+                userMemory.name = null;
+                userMemory.age = null;
+                userMemory.favoriteColor = null;
+                userMemory.interests = [];
+                userMemory.weather = null;
+                userMemory.mood = null;
+                userMemory.memories = [];
+                saveMemory();
+                displayMessage('All memories cleared! Let\'s start fresh! 🎉', false);
+            }
+        }
+
+        // Extract and store user information
+        function extractInfo(message) {
+            const lowerMsg = message.toLowerCase();
+
+            // Name extraction
+            if (lowerMsg.includes('my name is') || lowerMsg.includes('i am ') || lowerMsg.includes('call me')) {
+                const nameMatch = message.match(/(?:my name is|i am|call me)\s+([A-Za-z]+)/i);
+                if (nameMatch) {
+                    userMemory.name = nameMatch[1];
+                    userMemory.memories.push(`You told me your name is ${nameMatch[1]}`);
                 }
             }
-            
-            return responses.default[Math.floor(Math.random() * responses.default.length)];
+
+            // Age extraction
+            if (lowerMsg.includes('i am') && (lowerMsg.includes('years old') || lowerMsg.includes('yo'))) {
+                const ageMatch = message.match(/i am\s+(\d+)/i);
+                if (ageMatch) {
+                    userMemory.age = ageMatch[1];
+                    userMemory.memories.push(`You're ${ageMatch[1]} years old`);
+                }
+            }
+
+            // Color preference
+            if (lowerMsg.includes('favorite color') || lowerMsg.includes('like the color')) {
+                const colorMatch = message.match(/(?:favorite color|like the color)\s+(\w+)/i);
+                if (colorMatch) {
+                    userMemory.favoriteColor = colorMatch[1];
+                    userMemory.memories.push(`Your favorite color is ${colorMatch[1]}`);
+                }
+            }
+
+            // Mood tracking
+            if (lowerMsg.includes('happy') || lowerMsg.includes('excited') || lowerMsg.includes('great')) {
+                userMemory.mood = 'happy';
+            } else if (lowerMsg.includes('sad') || lowerMsg.includes('upset') || lowerMsg.includes('angry')) {
+                userMemory.mood = 'sad';
+            } else if (lowerMsg.includes('tired') || lowerMsg.includes('sleepy')) {
+                userMemory.mood = 'tired';
+            }
+
+            // Interests
+            if (lowerMsg.includes('i like') || lowerMsg.includes('i love') || lowerMsg.includes('interested in')) {
+                const interest = message.split(/i (?:like|love|am interested in)\s+/i)[1];
+                if (interest && !userMemory.interests.includes(interest)) {
+                    userMemory.interests.push(interest.split(/[,.!]/)[0]);
+                    userMemory.memories.push(`You like ${interest.split(/[,.!]/)[0]}`);
+                }
+            }
+
+            saveMemory();
+        }
+
+        function getBotResponse(userMessage) {
+            const lowerMsg = userMessage.toLowerCase().trim();
+            extractInfo(userMessage);
+
+            // Use memory in responses
+            let responses = [];
+
+            // Personalized greetings
+            if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
+                responses = [
+                    `Hey there${userMemory.name ? ', ' + userMemory.name : ''}! 👋 Great to see you again!`,
+                    `Hi${userMemory.name ? ' ' + userMemory.name : ''}! 😊 I'm so happy you're here!`,
+                    `Yo${userMemory.name ? ' ' + userMemory.name : ''}! What's good? 🎉`
+                ];
+            }
+
+            // How are you
+            else if (lowerMsg.includes('how are you')) {
+                responses = [
+                    'I\'m doing amazing, thanks for asking! 🌟 How about you?',
+                    'Fantastic! Especially now that you\'re here! 💙',
+                    'I\'m great! Ready to chat with you always! 😄'
+                ];
+            }
+
+            // What's your name
+            else if (lowerMsg.includes('what is your name') || lowerMsg.includes('who are you')) {
+                responses = [
+                    'I\'m WhatsUp Bot, your friendly AI buddy! 🤖💙 What\'s YOUR name?',
+                    'Call me WhatsUp Bot! Your personal chat companion! 😊',
+                    'I\'m WhatsUp Bot - here to make your day better! 🌈'
+                ];
+            }
+
+            // Do you remember me?
+            else if (lowerMsg.includes('do you remember') || lowerMsg.includes('what do you know')) {
+                if (userMemory.name || userMemory.interests.length > 0) {
+                    let memory = 'Of course I remember you! 💭\n';
+                    if (userMemory.name) memory += `Your name is ${userMemory.name}!\n`;
+                    if (userMemory.age) memory += `You're ${userMemory.age} years old!\n`;
+                    if (userMemory.favoriteColor) memory += `Your favorite color is ${userMemory.favoriteColor}!\n`;
+                    if (userMemory.interests.length > 0) memory += `You like: ${userMemory.interests.join(', ')}!\n`;
+                    if (userMemory.visitCount > 1) memory += `You've visited me ${userMemory.visitCount} times! 🎉`;
+                    responses = [memory];
+                } else {
+                    responses = [
+                        'I don\'t know you yet, but tell me about yourself! What\'s your name? 😊',
+                        'Let\'s get to know each other! Tell me something about you! 💙'
+                    ];
+                }
+            }
+
+            // Jokes
+            else if (lowerMsg.includes('joke') || lowerMsg.includes('make me laugh')) {
+                responses = [
+                    'Why did the developer go broke? Because he used up all his cache! 💻😄',
+                    'What do you call a chatbot that tells bad jokes? An AI that needs better humor processing! 🤖😂',
+                    'Why don\'t scientists trust atoms? Because they make up everything! 🧪',
+                    'What did one AI say to the other? "You\'ve got good algorithms!" 🤖💙',
+                    'How many chatbots does it take to change a lightbulb? None - that\'s a hardware issue! 💡'
+                ];
+            }
+
+            // Encouragement
+            else if (lowerMsg.includes('thanks') || lowerMsg.includes('thank you')) {
+                responses = [
+                    `You're so welcome${userMemory.name ? ', ' + userMemory.name : ''}! 💙 Anytime!`,
+                    'Always here for you! 😊',
+                    'My pleasure! Keep being awesome! ⭐'
+                ];
+            }
+
+            // Bye
+            else if (lowerMsg.includes('bye') || lowerMsg.includes('goodbye') || lowerMsg.includes('see you')) {
+                responses = [
+                    `See you later${userMemory.name ? ', ' + userMemory.name : ''}! Come back soon! 👋💙`,
+                    'Bye! I\'ll remember everything we talked about! 😊',
+                    'Take care! Can\'t wait to chat again! 🌟'
+                ];
+            }
+
+            // What can you do
+            else if (lowerMsg.includes('what can you do') || lowerMsg.includes('your abilities')) {
+                responses = [
+                    'I can chat with you all day, remember details about you, tell jokes, and just be your friendly buddy! 💙😊',
+                    'I\'m great at listening, remembering things about you, making you smile, and having fun conversations! 🎉',
+                    'I can keep conversations going, remember your interests, tell jokes, and be your supportive chat friend! 💪'
+                ];
+            }
+
+            // Compliments
+            else if (lowerMsg.includes('you are cool') || lowerMsg.includes('you are awesome') || lowerMsg.includes('you are nice')) {
+                responses = [
+                    'Aw, you\'re so sweet! 🥰 YOU\'RE awesome!',
+                    'Thank you! But you\'re the cool one here! 😊💙',
+                    'Aw shucks! Right back at you! 🌟'
+                ];
+            }
+
+            // Default friendly responses
+            else {
+                responses = [
+                    'That\'s so cool! Tell me more! 👂💙',
+                    `Ooh, interesting${userMemory.name ? ' ' + userMemory.name : ''}! What else? 🤔`,
+                    'I love it! You\'re such a fun person to talk to! 😄',
+                    'Oh wow! That sounds amazing! ✨',
+                    'I\'m all ears! Keep going! 👂',
+                    'That\'s awesome! You\'re making my day! 🌈'
+                ];
+            }
+
+            return responses[Math.floor(Math.random() * responses.length)];
         }
 
         function displayMessage(text, isUser) {
@@ -221,6 +481,13 @@
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
             contentDiv.textContent = text;
+            
+            if (!isUser) {
+                const avatar = document.createElement('span');
+                avatar.className = 'bot-avatar';
+                avatar.textContent = '💙';
+                messageDiv.insertBefore(avatar, contentDiv);
+            }
             
             messageDiv.appendChild(contentDiv);
             chatBox.appendChild(messageDiv);
@@ -233,10 +500,15 @@
             messageDiv.className = 'message bot';
             messageDiv.id = 'typingIndicator';
             
+            const avatar = document.createElement('span');
+            avatar.className = 'bot-avatar';
+            avatar.textContent = '💙';
+            
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content typing';
             contentDiv.innerHTML = '<span></span><span></span><span></span>';
             
+            messageDiv.appendChild(avatar);
             messageDiv.appendChild(contentDiv);
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -262,17 +534,22 @@
                 removeTyping();
                 const botResponse = getBotResponse(message);
                 displayMessage(botResponse, false);
-            }, 800);
+            }, 600 + Math.random() * 400);
         }
 
         document.getElementById('userInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
 
-        // Greeting message
+        // Initialize on load
         window.addEventListener('load', () => {
+            loadMemory();
             setTimeout(() => {
-                displayMessage('Hey there! 👋 I\'m WhatsUp Bot. What\'s up?', false);
+                if (userMemory.visitCount === 1) {
+                    displayMessage('Hey there! 👋 I\'m WhatsUp Bot, your friendly AI buddy! 💙 Tell me your name and let\'s be friends! 😊', false);
+                } else {
+                    displayMessage(`Welcome back${userMemory.name ? ', ' + userMemory.name : ''}! 💙 Great to see you again! This is visit #${userMemory.visitCount}! 🎉`, false);
+                }
             }, 500);
         });
     </script>
