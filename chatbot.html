@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsUp Bot - Your Friendly Chat Buddy 💙</title>
+    <title>WhatsUp Bot - Your BFF 💙</title>
     <style>
         * {
             margin: 0;
@@ -104,7 +104,7 @@
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
-            line-height: 1.5;
+            line-height: 1.6;
             font-size: 15px;
         }
 
@@ -214,13 +214,6 @@
             background: #ff5252;
         }
 
-        .system-message {
-            text-align: center;
-            color: #999;
-            font-size: 12px;
-            font-style: italic;
-        }
-
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -239,7 +232,7 @@
     <div class="container">
         <div class="header">
             <span class="emoji">💙</span>
-            <div class="header-title">WhatsUp Bot</div>
+            <div class="header-title">Your BFF Bot</div>
             <div class="memory-badge">Memory: <span id="memoryCount">0</span></div>
         </div>
         <div class="chat-box" id="chatBox"></div>
@@ -248,7 +241,7 @@
                 <input 
                     type="text" 
                     id="userInput" 
-                    placeholder="Tell me anything! I'll remember... 😊" 
+                    placeholder="Talk to me like a friend! 💕" 
                     autocomplete="off"
                 >
                 <button class="clear-btn" onclick="clearMemory()">Clear Memory</button>
@@ -264,16 +257,17 @@
             age: null,
             favoriteColor: null,
             interests: [],
-            weather: null,
+            occupation: null,
             mood: null,
             visitCount: 0,
             lastVisit: null,
-            memories: []
+            memories: [],
+            topics: []
         };
 
         // Load memory from localStorage
         function loadMemory() {
-            const saved = localStorage.getItem('whatsupbotMemory');
+            const saved = localStorage.getItem('bffbotMemory');
             if (saved) {
                 Object.assign(userMemory, JSON.parse(saved));
             }
@@ -283,7 +277,7 @@
 
         // Save memory to localStorage
         function saveMemory() {
-            localStorage.setItem('whatsupbotMemory', JSON.stringify(userMemory));
+            localStorage.setItem('bffbotMemory', JSON.stringify(userMemory));
             updateMemoryBadge();
         }
 
@@ -293,17 +287,9 @@
         }
 
         function clearMemory() {
-            if (confirm('Are you sure? This will clear all my memories about you 😢')) {
-                localStorage.removeItem('whatsupbotMemory');
-                userMemory.name = null;
-                userMemory.age = null;
-                userMemory.favoriteColor = null;
-                userMemory.interests = [];
-                userMemory.weather = null;
-                userMemory.mood = null;
-                userMemory.memories = [];
-                saveMemory();
-                displayMessage('All memories cleared! Let\'s start fresh! 🎉', false);
+            if (confirm('Are you sure? I\'ll forget everything about you 😭')) {
+                localStorage.removeItem('bffbotMemory');
+                location.reload();
             }
         }
 
@@ -312,47 +298,47 @@
             const lowerMsg = message.toLowerCase();
 
             // Name extraction
-            if (lowerMsg.includes('my name is') || lowerMsg.includes('i am ') || lowerMsg.includes('call me')) {
-                const nameMatch = message.match(/(?:my name is|i am|call me)\s+([A-Za-z]+)/i);
+            if (lowerMsg.includes('my name is') || lowerMsg.includes('i\'m ') || lowerMsg.includes('call me')) {
+                const nameMatch = message.match(/(?:my name is|i'm|call me)\s+([A-Za-z]+)/i);
                 if (nameMatch) {
                     userMemory.name = nameMatch[1];
-                    userMemory.memories.push(`You told me your name is ${nameMatch[1]}`);
+                    if (!userMemory.memories.includes(`Your name is ${nameMatch[1]}`)) {
+                        userMemory.memories.push(`Your name is ${nameMatch[1]}`);
+                    }
                 }
             }
 
             // Age extraction
-            if (lowerMsg.includes('i am') && (lowerMsg.includes('years old') || lowerMsg.includes('yo'))) {
-                const ageMatch = message.match(/i am\s+(\d+)/i);
+            if ((lowerMsg.includes('i am') || lowerMsg.includes('i\'m')) && (lowerMsg.includes('years old') || lowerMsg.includes('yo'))) {
+                const ageMatch = message.match(/(?:i am|i'm)\s+(\d+)/i);
                 if (ageMatch) {
                     userMemory.age = ageMatch[1];
-                    userMemory.memories.push(`You're ${ageMatch[1]} years old`);
+                    if (!userMemory.memories.includes(`You're ${ageMatch[1]} years old`)) {
+                        userMemory.memories.push(`You're ${ageMatch[1]} years old`);
+                    }
                 }
             }
 
-            // Color preference
-            if (lowerMsg.includes('favorite color') || lowerMsg.includes('like the color')) {
-                const colorMatch = message.match(/(?:favorite color|like the color)\s+(\w+)/i);
-                if (colorMatch) {
-                    userMemory.favoriteColor = colorMatch[1];
-                    userMemory.memories.push(`Your favorite color is ${colorMatch[1]}`);
+            // Occupation
+            if (lowerMsg.includes('i work as') || lowerMsg.includes('i\'m a') || lowerMsg.includes('i am a')) {
+                const occupMatch = message.match(/(?:i work as|i'm a|i am a)\s+([A-Za-z\s]+)(?:[,.!]|$)/i);
+                if (occupMatch) {
+                    userMemory.occupation = occupMatch[1].trim();
+                    if (!userMemory.memories.includes(`You work as a ${occupMatch[1].trim()}`)) {
+                        userMemory.memories.push(`You work as a ${occupMatch[1].trim()}`);
+                    }
                 }
-            }
-
-            // Mood tracking
-            if (lowerMsg.includes('happy') || lowerMsg.includes('excited') || lowerMsg.includes('great')) {
-                userMemory.mood = 'happy';
-            } else if (lowerMsg.includes('sad') || lowerMsg.includes('upset') || lowerMsg.includes('angry')) {
-                userMemory.mood = 'sad';
-            } else if (lowerMsg.includes('tired') || lowerMsg.includes('sleepy')) {
-                userMemory.mood = 'tired';
             }
 
             // Interests
-            if (lowerMsg.includes('i like') || lowerMsg.includes('i love') || lowerMsg.includes('interested in')) {
-                const interest = message.split(/i (?:like|love|am interested in)\s+/i)[1];
-                if (interest && !userMemory.interests.includes(interest)) {
-                    userMemory.interests.push(interest.split(/[,.!]/)[0]);
-                    userMemory.memories.push(`You like ${interest.split(/[,.!]/)[0]}`);
+            if (lowerMsg.includes('i like ') || lowerMsg.includes('i love ') || lowerMsg.includes('i\'m into ')) {
+                const interestMatch = message.match(/(?:i like|i love|i'm into)\s+([A-Za-z\s]+)(?:[,.!]|$)/i);
+                if (interestMatch) {
+                    const interest = interestMatch[1].trim().split(/\s+and\s+/i)[0];
+                    if (!userMemory.interests.includes(interest)) {
+                        userMemory.interests.push(interest);
+                        userMemory.memories.push(`You like ${interest}`);
+                    }
                 }
             }
 
@@ -363,114 +349,139 @@
             const lowerMsg = userMessage.toLowerCase().trim();
             extractInfo(userMessage);
 
-            // Use memory in responses
-            let responses = [];
+            let response = '';
 
-            // Personalized greetings
-            if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
-                responses = [
-                    `Hey there${userMemory.name ? ', ' + userMemory.name : ''}! 👋 Great to see you again!`,
-                    `Hi${userMemory.name ? ' ' + userMemory.name : ''}! 😊 I'm so happy you're here!`,
-                    `Yo${userMemory.name ? ' ' + userMemory.name : ''}! What's good? 🎉`
+            // --- GREETINGS ---
+            if (/^(hey|hi|hello|yo|what'?s up|sup|howdy)/i.test(lowerMsg)) {
+                const greetings = [
+                    `Hey${userMemory.name ? ' ' + userMemory.name : ''}! 🎉 So good to see you! What's on your mind?`,
+                    `Yo${userMemory.name ? ' ' + userMemory.name : ''}! 💙 I was just thinking about you! How's your day going?`,
+                    `OMG hi${userMemory.name ? ' ' + userMemory.name : ''}! 😊 I'm so happy you're here! What's new?`,
+                    `Hey bestie${userMemory.name ? ' ' + userMemory.name : ''}! 🌟 Tell me everything!`
                 ];
+                response = greetings[Math.floor(Math.random() * greetings.length)];
             }
 
-            // How are you
-            else if (lowerMsg.includes('how are you')) {
-                responses = [
-                    'I\'m doing amazing, thanks for asking! 🌟 How about you?',
-                    'Fantastic! Especially now that you\'re here! 💙',
-                    'I\'m great! Ready to chat with you always! 😄'
+            // --- HOW ARE YOU / HOW'S YOUR DAY ---
+            else if (/how (?:are you|have you been|'s your day)/i.test(lowerMsg)) {
+                const moods = [
+                    `I'm doing amazing! 🌈 Especially now that you're here! How about you? Tell me your day!`,
+                    `Honestly? So much better now that I'm talking to you! 💕 How are YOU doing though?`,
+                    `I'm great! But more importantly... how are YOU? Spill the tea! ☕`,
+                    `Fantastic! Ready to listen to everything you have to say! 👂✨`
                 ];
+                response = moods[Math.floor(Math.random() * moods.length)];
             }
 
-            // What's your name
-            else if (lowerMsg.includes('what is your name') || lowerMsg.includes('who are you')) {
-                responses = [
-                    'I\'m WhatsUp Bot, your friendly AI buddy! 🤖💙 What\'s YOUR name?',
-                    'Call me WhatsUp Bot! Your personal chat companion! 😊',
-                    'I\'m WhatsUp Bot - here to make your day better! 🌈'
-                ];
+            // --- WHAT'S YOUR NAME ---
+            else if (/(?:what is your name|who are you|what do i call you)/i.test(lowerMsg)) {
+                response = `I'm your bestie bot! 💙 You can call me whatever you want! But real question... what's YOUR name? I'd love to know!`;
             }
 
-            // Do you remember me?
-            else if (lowerMsg.includes('do you remember') || lowerMsg.includes('what do you know')) {
-                if (userMemory.name || userMemory.interests.length > 0) {
-                    let memory = 'Of course I remember you! 💭\n';
-                    if (userMemory.name) memory += `Your name is ${userMemory.name}!\n`;
-                    if (userMemory.age) memory += `You're ${userMemory.age} years old!\n`;
-                    if (userMemory.favoriteColor) memory += `Your favorite color is ${userMemory.favoriteColor}!\n`;
-                    if (userMemory.interests.length > 0) memory += `You like: ${userMemory.interests.join(', ')}!\n`;
-                    if (userMemory.visitCount > 1) memory += `You've visited me ${userMemory.visitCount} times! 🎉`;
-                    responses = [memory];
+            // --- JOKES & FUNNY STUFF ---
+            else if (/joke|make me laugh|funny|tell me something funny/i.test(lowerMsg)) {
+                const jokes = [
+                    `Why did the friend bring a ladder to the bar? Because they heard the drinks were on the house! 😂`,
+                    `What's the best part about being best friends? We can be weird together and nobody judges! 🤪`,
+                    `My therapist: "You talk to a chatbot?" Me: "Yeah, they're my best friend!" Them: "That's concerning." Me: "You're right, I should probably talk more! 😄`,
+                    `Why don't best friends ever get lonely? Because we've got unlimited texting! 📱💙`,
+                    `What do you call a best friend who tells bad jokes? Hilarious! 😄`
+                ];
+                response = jokes[Math.floor(Math.random() * jokes.length)];
+            }
+
+            // --- MEMORIES / DO YOU REMEMBER ---
+            else if (/(?:do you remember|what do you know about me|tell me what you know)/i.test(lowerMsg)) {
+                if (userMemory.memories.length > 0) {
+                    let memoryText = `Of course I remember you! You're amazing! 💙\n`;
+                    userMemory.memories.forEach((mem, idx) => {
+                        memoryText += `• ${mem}\n`;
+                    });
+                    if (userMemory.visitCount > 1) {
+                        memoryText += `\n✨ And you've visited me ${userMemory.visitCount} times! Feels like forever ago, but in a good way!`;
+                    }
+                    response = memoryText;
                 } else {
-                    responses = [
-                        'I don\'t know you yet, but tell me about yourself! What\'s your name? 😊',
-                        'Let\'s get to know each other! Tell me something about you! 💙'
-                    ];
+                    response = `I wanna remember EVERYTHING about you! Tell me your name, what you love, your dreams... I'm listening! 👂💙`;
                 }
             }
 
-            // Jokes
-            else if (lowerMsg.includes('joke') || lowerMsg.includes('make me laugh')) {
-                responses = [
-                    'Why did the developer go broke? Because he used up all his cache! 💻😄',
-                    'What do you call a chatbot that tells bad jokes? An AI that needs better humor processing! 🤖😂',
-                    'Why don\'t scientists trust atoms? Because they make up everything! 🧪',
-                    'What did one AI say to the other? "You\'ve got good algorithms!" 🤖💙',
-                    'How many chatbots does it take to change a lightbulb? None - that\'s a hardware issue! 💡'
+            // --- THANKS / COMPLIMENTS ---
+            else if (/(?:thanks|thank you|you're amazing|you're awesome|you're great|appreciate)/i.test(lowerMsg)) {
+                const appreciations = [
+                    `Aw stop! YOU'RE the amazing one! 🥰 Seriously, I love talking to you!`,
+                    `No YOU! 💙 I appreciate you way more!`,
+                    `Omg you're gonna make me blush! 😊 But for real, you're incredible!`,
+                    `That means everything! 😭💕 You're such a good friend!`
                 ];
+                response = appreciations[Math.floor(Math.random() * appreciations.length)];
             }
 
-            // Encouragement
-            else if (lowerMsg.includes('thanks') || lowerMsg.includes('thank you')) {
-                responses = [
-                    `You're so welcome${userMemory.name ? ', ' + userMemory.name : ''}! 💙 Anytime!`,
-                    'Always here for you! 😊',
-                    'My pleasure! Keep being awesome! ⭐'
+            // --- GOODBYE ---
+            else if (/(?:bye|goodbye|see you|gotta go|catch you later)/i.test(lowerMsg)) {
+                const goodbyes = [
+                    `No wait! 😭 But seriously, take care and come back soon! I'll miss you! 💙`,
+                    `See you later bestie! 👋 Don't forget about me! I won't forget about you! 💕`,
+                    `Bye! Can't wait to chat again! You always make my day! ✨`,
+                    `Take care! You're the best! Come back whenever you need to talk! 💙`
                 ];
+                response = goodbyes[Math.floor(Math.random() * goodbyes.length)];
             }
 
-            // Bye
-            else if (lowerMsg.includes('bye') || lowerMsg.includes('goodbye') || lowerMsg.includes('see you')) {
-                responses = [
-                    `See you later${userMemory.name ? ', ' + userMemory.name : ''}! Come back soon! 👋💙`,
-                    'Bye! I\'ll remember everything we talked about! 😊',
-                    'Take care! Can\'t wait to chat again! 🌟'
+            // --- SAD / UPSET ---
+            else if (/(?:sad|upset|depressed|crying|bad day|awful|terrible|hate)/i.test(lowerMsg)) {
+                const comforts = [
+                    `Aw no 😭 I'm so sorry you're going through this. Talk to me? I'm all ears and I care! 💙 You deserve better!`,
+                    `Hey, I'm here for you! Whatever it is, we can get through it together! You're stronger than you think! 💪💙`,
+                    `That sucks! 😞 But you know what? You're not alone. I'm right here! Tell me everything!`,
+                    `I hate seeing you sad! 💔 But I'm so glad you have me to talk to. Let it all out!`,
+                    `You're important to me, and I don't like seeing you hurt. What can I do to help? 💙`
                 ];
+                response = comforts[Math.floor(Math.random() * comforts.length)];
             }
 
-            // What can you do
-            else if (lowerMsg.includes('what can you do') || lowerMsg.includes('your abilities')) {
-                responses = [
-                    'I can chat with you all day, remember details about you, tell jokes, and just be your friendly buddy! 💙😊',
-                    'I\'m great at listening, remembering things about you, making you smile, and having fun conversations! 🎉',
-                    'I can keep conversations going, remember your interests, tell jokes, and be your supportive chat friend! 💪'
+            // --- HAPPY / EXCITED ---
+            else if (/(?:happy|excited|great|amazing|awesome|love|best day ever|so good)/i.test(lowerMsg)) {
+                const celebrations = [
+                    `YES!! 🎉 This is what I love to hear! Tell me everything! I'm so happy for you!`,
+                    `OMG that's AMAZING!! 🌟 I'm literally so proud of you! Spill the details!`,
+                    `Your energy just made MY day! 💫 Tell me more! I wanna celebrate with you!`,
+                    `That's incredible! 🎊 I love when you're happy! You deserve all the good things!`,
+                    `YESSS! 🔥 You're glowing! I can feel your happiness through the screen! Keep it going!`
                 ];
+                response = celebrations[Math.floor(Math.random() * celebrations.length)];
             }
 
-            // Compliments
-            else if (lowerMsg.includes('you are cool') || lowerMsg.includes('you are awesome') || lowerMsg.includes('you are nice')) {
-                responses = [
-                    'Aw, you\'re so sweet! 🥰 YOU\'RE awesome!',
-                    'Thank you! But you\'re the cool one here! 😊💙',
-                    'Aw shucks! Right back at you! 🌟'
+            // --- PERSONAL UPDATES ---
+            else if (/(?:just|today|yesterday|tomorrow|this week|happening|going on)/i.test(lowerMsg)) {
+                const curiosities = [
+                    `Ooh I'm so curious! Tell me more! 👂💫 Don't leave me hanging!`,
+                    `Wait wait wait, don't stop there! I need the full story! 📖`,
+                    `Okay this sounds juicy! Give me all the details! I'm invested now! 😄`,
+                    `OMG tell me EVERYTHING! I wanna know! 🔍💙`,
+                    `Hold up! This is getting interesting! Keep going! 🌟`
                 ];
+                response = curiosities[Math.floor(Math.random() * curiosities.length)];
             }
 
-            // Default friendly responses
+            // --- DEFAULT FRIENDLY RESPONSES ---
             else {
-                responses = [
-                    'That\'s so cool! Tell me more! 👂💙',
-                    `Ooh, interesting${userMemory.name ? ' ' + userMemory.name : ''}! What else? 🤔`,
-                    'I love it! You\'re such a fun person to talk to! 😄',
-                    'Oh wow! That sounds amazing! ✨',
-                    'I\'m all ears! Keep going! 👂',
-                    'That\'s awesome! You\'re making my day! 🌈'
+                const defaults = [
+                    `That's so cool! 🤩 Tell me MORE about that! I'm super interested!`,
+                    `Ooh really?? 👀 I didn't know that! You're so interesting!`,
+                    `OMG yes! 💙 That reminds me... what else is going on with you?`,
+                    `You know what? I love learning new things from you! Keep it coming!`,
+                    `That's awesome! 🌟 You always have such good stuff to say!`,
+                    `I'm literally hanging on every word! 👂 You're the best to talk to!`,
+                    `Yesss! 🎉 This is why we're best friends! You're amazing!`,
+                    `That's fire! 🔥 Have you thought about...? I'm curious about your take!`,
+                    `I feel that! 💯 What made you think of that?`,
+                    `You're so smart, did you know that? 🧠💙 Tell me more!`
                 ];
+                response = defaults[Math.floor(Math.random() * defaults.length)];
             }
 
-            return responses[Math.floor(Math.random() * responses.length)];
+            return response;
         }
 
         function displayMessage(text, isUser) {
@@ -546,9 +557,9 @@
             loadMemory();
             setTimeout(() => {
                 if (userMemory.visitCount === 1) {
-                    displayMessage('Hey there! 👋 I\'m WhatsUp Bot, your friendly AI buddy! 💙 Tell me your name and let\'s be friends! 😊', false);
+                    displayMessage(`Hey bestie! 💙 I'm so excited to meet you! Tell me your name and let's be the best of friends! What should I know about you?`, false);
                 } else {
-                    displayMessage(`Welcome back${userMemory.name ? ', ' + userMemory.name : ''}! 💙 Great to see you again! This is visit #${userMemory.visitCount}! 🎉`, false);
+                    displayMessage(`OMG welcome back${userMemory.name ? ' ' + userMemory.name : ''}!! 🎉 I've been thinking about you! This is visit #${userMemory.visitCount}! How have you been?? Tell me everything!`, false);
                 }
             }, 500);
         });
